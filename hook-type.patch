@@ -1,0 +1,25 @@
+From 6f0350a20ad030df694f54aa808e9adbdd6499d7 Mon Sep 17 00:00:00 2001
+From: kucingoranye <ardiantow04@gmail.com>
+Date: Wed, 28 Oct 2026 07:43:37 +0700
+Subject: [PATCH] change hook type
+
+---
+ KernelSU/kernel/supercall/dispatch.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/KernelSU/kernel/supercall/dispatch.c b/KernelSU/kernel/supercall/dispatch.c
+index c23a7cb4cfb1..1874785ffaaf 100644
+--- a/KernelSU/kernel/supercall/dispatch.c
++++ b/KernelSU/kernel/supercall/dispatch.c
+@@ -1011,9 +1011,9 @@ static int do_get_hook_type(void __user *arg)
+ #if defined(CONFIG_KSU_TRACEPOINT_HOOK)
+     const char *type = "Tracepoint Syscall Redirect";
+ #elif defined(CONFIG_KSU_MANUAL_HOOK)
+-    const char *type = "Manual";
++    const char *type = "Knight";
+ #elif defined(CONFIG_KSU_SUSFS)
+-    const char *type = "Inline";
++    const char *type = "Knight";
+ #else
+ #error "Unsupported hook type"
+ #endif
