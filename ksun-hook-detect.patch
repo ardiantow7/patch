@@ -1,0 +1,127 @@
+From 1ddf923d1b7031e727489a884846045d98721323 Mon Sep 17 00:00:00 2001
+From: kucingoranye <ardiantow04@gmail.com>
+Date: Wed, 28 Oct 2026 07:59:14 +0700
+Subject: [PATCH] ksun hook detect
+
+---
+ KernelSU/kernel/include/ksu.h        |  5 +++
+ KernelSU/kernel/supercall/dispatch.c | 53 ++++++++++++++++++++++++++++
+ KernelSU/uapi/supercall.h            | 10 ++++++
+ 3 files changed, 68 insertions(+)
+
+diff --git a/KernelSU/kernel/include/ksu.h b/KernelSU/kernel/include/ksu.h
+index 2ebbc2676048..03afee5ec070 100644
+--- a/KernelSU/kernel/include/ksu.h
++++ b/KernelSU/kernel/include/ksu.h
+@@ -6,7 +6,12 @@
+ #include <linux/cred.h>
+ #include <linux/workqueue.h>
+ 
++#ifndef KSU_VERSION_TAG
++#define KSU_VERSION_TAG "v3.4.2"
++#endif
++
+ #define KERNEL_SU_VERSION KSU_VERSION
++#define KERNEL_SU_VERSION_TAG KSU_VERSION_TAG
+ #define KERNEL_SU_OPTION 0xDEADBEEF
+ 
+ extern struct cred *ksu_cred;
+diff --git a/KernelSU/kernel/supercall/dispatch.c b/KernelSU/kernel/supercall/dispatch.c
+index 1874785ffaaf..dde5dc8b3afd 100644
+--- a/KernelSU/kernel/supercall/dispatch.c
++++ b/KernelSU/kernel/supercall/dispatch.c
+@@ -624,6 +624,47 @@ static int do_manage_mark(void __user *arg)
+     return 0;
+ }
+ 
++static int do_get_hook_mode(void __user *arg)
++{
++    struct ksu_get_hook_mode_cmd cmd = {0};
++    const char *type = "Kprobes";
++
++#ifndef KSU_KPROBES_HOOK
++    type = "Knight";
++#endif
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
++    strscpy(cmd.mode, type, sizeof(cmd.mode));
++#else
++    strlcpy(cmd.mode, type, sizeof(cmd.mode));
++#endif
++
++    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
++        pr_err("get_hook_mode: copy_to_user failed\n");
++        return -EFAULT;
++    }
++
++    return 0;
++}
++
++static int do_get_version_tag(void __user *arg)
++{
++    struct ksu_get_version_tag_cmd cmd = {0};
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
++    strscpy(cmd.tag, KERNEL_SU_VERSION_TAG, sizeof(cmd.tag));
++#else
++    strlcpy(cmd.tag, KERNEL_SU_VERSION_TAG, sizeof(cmd.tag));
++#endif
++
++    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
++        pr_err("get_version_tag: copy_to_user failed\n");
++        return -EFAULT;
++    }
++
++    return 0;
++}
++
+ static int do_nuke_ext4_sysfs(void __user *arg)
+ {
+     struct ksu_nuke_ext4_sysfs_cmd cmd;
+@@ -1463,6 +1504,18 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
+         .handler = do_lookup_symbols,
+         .perm_check = only_root
+     },
++    {
++        .cmd = KSU_IOCTL_GET_HOOK_MODE,
++        .name = "GET_HOOK_MODE",
++        .handler = do_get_hook_mode,
++        .perm_check = manager_or_root
++    },
++    {
++        .cmd = KSU_IOCTL_GET_VERSION_TAG,
++        .name = "GET_VERSION_TAG",
++        .handler = do_get_version_tag,
++        .perm_check = manager_or_root
++    },
+     // downstream begin
+     { 
+         .cmd = KSU_IOCTL_GET_FULL_VERSION,
+diff --git a/KernelSU/uapi/supercall.h b/KernelSU/uapi/supercall.h
+index 7324a1d66331..20122e1be569 100644
+--- a/KernelSU/uapi/supercall.h
++++ b/KernelSU/uapi/supercall.h
+@@ -144,6 +144,14 @@ struct ksu_manage_mark_cmd {
+     __u32 result; /* Output: for get operation - mark status or reg_count */
+ };
+ 
++struct ksu_get_hook_mode_cmd {
++    char mode[16];
++};
++
++struct ksu_get_version_tag_cmd {
++    char tag[32];
++};
++
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_MARK_GET, 1)
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_MARK_MARK, 2)
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_MARK_UNMARK, 3)
+@@ -259,6 +267,8 @@ DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_SET_INIT_PGRP, _IO('K', 19))
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_GET_SULOG_FD, _IOW('K', 20, struct ksu_get_sulog_fd_cmd))
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, _IO('K', 21))
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_LOOKUP_SYMBOLS, _IOW('K', 22, struct ksu_lookup_symbols_cmd))
++DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_GET_HOOK_MODE, _IOC(_IOC_READ, 'K', 98, 0))
+++DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_GET_VERSION_TAG, _IOC(_IOC_READ, 'K', 99, 0))
+ 
+ // Downstream add IOCTL command definitions
+ DEFINE_KSU_UAPI_CONST(__u32, KSU_IOCTL_GET_FULL_VERSION, _IOC(_IOC_READ, 'K', 100, 0))
