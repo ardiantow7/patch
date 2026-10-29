@@ -1,0 +1,29 @@
+From b973430839acd4ce66b8f907f8ee19a85f7c3e62 Mon Sep 17 00:00:00 2001
+From: kucingoranye <ardiantow04@gmail.com>
+Date: Thu, 29 Oct 2026 11:32:29 +0700
+Subject: [PATCH] Change hook type
+
+---
+ KernelSU-Next/kernel/supercall/dispatch.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/KernelSU-Next/kernel/supercall/dispatch.c b/KernelSU-Next/kernel/supercall/dispatch.c
+index 927240415aa1..f1f6263880a3 100644
+--- a/KernelSU-Next/kernel/supercall/dispatch.c
++++ b/KernelSU-Next/kernel/supercall/dispatch.c
+@@ -548,7 +548,7 @@ static int do_get_hook_mode(void __user *arg)
+ 	const char *type = "Kprobes";
+ 
+ #ifndef KSU_KPROBES_HOOK
+-	type = "Manual";
++	type = "Knight";
+ #endif
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+@@ -1123,4 +1123,4 @@ void ksu_supercall_cleanup_state(void)
+         kfree(entry);
+     }
+     up_write(&mount_list_lock);
+-}
+\ No newline at end of file
++}
