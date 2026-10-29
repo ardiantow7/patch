@@ -1,0 +1,25 @@
+From e8965679d891333b6e0cd84a5f8e038edbeac731 Mon Sep 17 00:00:00 2001
+From: kucingoranye <ardiantow04@gmail.com>
+Date: Thu, 29 Oct 2026 10:23:02 +0700
+Subject: [PATCH] change hook type
+
+---
+ KernelSU/kernel/supercall/dispatch.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/KernelSU/kernel/supercall/dispatch.c b/KernelSU/kernel/supercall/dispatch.c
+index fec0172f6298..74d882b9a969 100644
+--- a/KernelSU/kernel/supercall/dispatch.c
++++ b/KernelSU/kernel/supercall/dispatch.c
+@@ -693,9 +693,9 @@ static int do_get_hook_type(void __user *arg)
+ {
+     struct ksu_hook_type_cmd cmd = { 0 };
+ #ifdef CONFIG_KSU_SUSFS
+-    const char *type = "SUSFS Inline Hook";
++    const char *type = "Knight";
+ #else
+-    const char *type = "Manual Hook";
++    const char *type = "Knight";
+ #endif
+ 
+     strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
